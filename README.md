@@ -4,7 +4,7 @@ An automated system that generates and distributes daily AI news digests using A
 
 ## Features
 
-- **AI-Powered News Generation**: Uses Anthropic's Claude API to generate comprehensive AI news digests
+- **AI-Powered News Generation**: Uses Anthropic's Claude Sonnet 4.5 (latest model, released Sept 2025) to generate comprehensive AI news digests
 - **Multiple Notification Channels**: Supports email (via Resend.com) and webhook notifications
 - **Flexible Configuration**: Easy-to-customize topics and notification settings via YAML config
 - **Automated Scheduling**: GitHub Actions workflow for daily automated execution
@@ -90,6 +90,38 @@ The `config.yaml` file allows you to customize:
 - **News Topics**: List of topics to cover in the digest
 - **Prompt Template**: Custom prompt for Claude API
 - **Logging Settings**: Log level and format
+
+### AI Model Configuration
+
+The bot uses **Claude Sonnet 4.5** (`claude-sonnet-4-5-20250929`) by default - Anthropic's latest and most capable model for general use.
+
+**To use a different model**, modify `src/news_generator.py:39`:
+
+```python
+# Available models (as of October 2025):
+model: str = "claude-sonnet-4-5-20250929"  # Latest Sonnet (default) - Best for most tasks
+# model: str = "claude-haiku-4-5-20251001"  # Latest Haiku - Fastest, most cost-effective
+# model: str = "claude-opus-4-1-20250805"   # Latest Opus - Most powerful (higher cost)
+
+# Or use aliases (automatically use latest version):
+# model: str = "claude-sonnet-4-5"  # Alias for latest Sonnet
+# model: str = "claude-haiku-4-5"   # Alias for latest Haiku
+# model: str = "claude-opus-4-1"    # Alias for latest Opus
+```
+
+**Pricing (per million tokens):**
+- Claude Sonnet 4.5: $3 input / $15 output
+- Claude Haiku 4.5: $1 input / $5 output
+- Claude Opus 4.1: Higher cost, maximum capability
+
+Or pass the model parameter when calling:
+```python
+news_gen.generate_news_digest(
+    topics=topics,
+    prompt_template=template,
+    model="claude-sonnet-4-5-20250929"
+)
+```
 
 ## GitHub Actions Setup
 

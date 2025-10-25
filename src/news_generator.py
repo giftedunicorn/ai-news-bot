@@ -36,7 +36,7 @@ class NewsGenerator:
         self,
         topics: List[str],
         prompt_template: str,
-        model: str = "claude-3-5-sonnet-20241022",
+        model: str = "claude-sonnet-4-5-20250929",
         max_tokens: int = 2000
     ) -> str:
         """
