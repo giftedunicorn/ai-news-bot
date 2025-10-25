@@ -3,7 +3,7 @@ name: Daily AI News Digest
 on:
   # Run daily at 9:00 AM UTC (adjust as needed)
   schedule:
-    - cron: '0 9 * * *'
+    - cron: '0 0 * * *'
 
   # Allow manual trigger
   workflow_dispatch:
