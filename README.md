@@ -5,12 +5,14 @@ An automated system that generates and distributes daily AI news digests using A
 ## Features
 
 - **AI-Powered News Generation**: Uses Anthropic's Claude Sonnet 4.5 (latest model, released Sept 2025) to generate comprehensive AI news digests
+- **Beautiful Email Formatting**: Automatically converts AI content to stunning HTML emails - no markdown, just clean professional design
+- **Customizable Prompts**: 9 pre-built templates (comprehensive, research, business, technical, etc.) or create your own
 - **Multilingual Support**: Generate news in 13+ languages including English, Chinese, Spanish, French, Japanese, and more
 - **Multiple Notification Channels**: Supports email (via Resend.com) and webhook notifications
 - **Flexible Configuration**: Easy-to-customize topics and notification settings via YAML config
 - **Automated Scheduling**: GitHub Actions workflow for daily automated execution
 - **Robust Error Handling**: Comprehensive logging and retry logic
-- **Professional Email Templates**: HTML-formatted emails with clean design
+- **Email Client Compatible**: Works perfectly in Gmail, Outlook, Apple Mail, and mobile email apps
 - **Modern Email Delivery**: Uses Resend.com for reliable, developer-friendly email delivery
 
 ## 🚀 Deployment Options
@@ -72,16 +74,56 @@ AI_RESPONSE_LANGUAGE=en
 
 > **Note**: The `.env` file is only for **local development**. For GitHub Actions automation, you'll configure these as **GitHub Secrets** (see [GitHub Actions Setup](#github-actions-setup) below).
 
-### 4. Customize News Topics (Optional)
+### 4. Customize News Prompt (Optional)
 
-Edit `config.yaml` to customize the news topics and prompt template:
+The bot uses an **optimized, concise prompt** (15 lines vs 50+ in typical systems) that generates high-quality news digests.
 
+**Default Prompt** (in config.yaml):
 ```yaml
-news:
-  topics:
-    - "Your custom topic 1"
-    - "Your custom topic 2"
+Summarize 10 recent AI news items (5 international + 5 domestic) covering: {topics}
+
+Format:
+International News:
+1. [Headline]
+[2-3 sentence summary]
+Source: [Name]
+
+Domestic News:
+1. [Headline]
+...
+
+Rules: Recent news, no markdown, clear language
 ```
+
+**Why it's concise:**
+- ✅ Faster processing
+- ✅ Lower cost
+- ✅ Easier to maintain
+- ✅ No redundancy
+
+**Multi-Language Support:**
+
+Prompts are in English (best for Claude), but output can be in **13+ languages**:
+```bash
+# In .env file
+AI_RESPONSE_LANGUAGE=zh  # Chinese output
+AI_RESPONSE_LANGUAGE=es  # Spanish output
+AI_RESPONSE_LANGUAGE=ja  # Japanese output
+# Supports: en, zh, es, fr, ja, de, ko, pt, ru, ar, hi, it, nl
+```
+
+**Pre-built Templates** (config.examples.yaml):
+1. Comprehensive (default) - Balanced coverage
+2. Research - Academic focus
+3. Business - Industry & funding
+4. Technical - Engineering depth
+5. Startup - Early-stage companies
+6. Policy - Regulations
+7. Weekly - Top stories
+8. Concise - Ultra-brief
+9. Chinese - 中文示例
+
+📖 **Full Guide**: See [PROMPT_GUIDE.md](PROMPT_GUIDE.md) for customization and multi-language details.
 
 ### 5. Run Locally
 
@@ -110,11 +152,32 @@ The bot requires the following configuration. How you set them depends on your d
 
 ### Configuration File (config.yaml)
 
-The `config.yaml` file allows you to customize:
+The `config.yaml` file allows you to customize the news digest behavior:
 
-- **News Topics**: List of topics to cover in the digest
-- **Prompt Template**: Custom prompt for Claude API
-- **Logging Settings**: Log level and format
+**News Configuration**:
+- **Topics**: Focus areas for news selection (optional, guides the AI)
+- **Prompt Template**: The instruction template for Claude API
+  - Default: Comprehensive 10-item digest (5 international + 5 domestic)
+  - Fully customizable with your own prompts
+  - See `config.examples.yaml` for 9 pre-built templates
+
+**Logging Settings**: Control log verbosity and format
+
+**Example Structure**:
+```yaml
+news:
+  topics:
+    - "Technical breakthroughs"
+    - "Product launches"
+
+  prompt_template: |
+    Your custom prompt...
+    Focus: {topics}
+
+logging:
+  level: INFO
+  format: "%(asctime)s - %(levelname)s - %(message)s"
+```
 
 ### AI Model Configuration
 
@@ -150,45 +213,35 @@ news_gen.generate_news_digest(
 
 ### Language Configuration
 
-The bot supports **multilingual AI responses**. Set the `AI_RESPONSE_LANGUAGE` environment variable to generate news in your preferred language.
+**How It Works:**
+- Prompts are always in **English** (best for Claude understanding)
+- Output can be in **13+ languages** (automatic translation)
+- Set `AI_RESPONSE_LANGUAGE` in `.env` or GitHub Secrets
 
 **Supported Languages:**
 
-| Code | Language | Native Name |
-|------|----------|-------------|
-| `en` | English | English (default) |
-| `zh` | Chinese | 中文 |
-| `es` | Spanish | Español |
-| `fr` | French | Français |
-| `ja` | Japanese | 日本語 |
-| `de` | German | Deutsch |
-| `ko` | Korean | 한국어 |
-| `pt` | Portuguese | Português |
-| `ru` | Russian | Русский |
-| `ar` | Arabic | العربية |
-| `hi` | Hindi | हिन्दी |
-| `it` | Italian | Italiano |
-| `nl` | Dutch | Nederlands |
+`en` (English) • `zh` (中文) • `es` (Español) • `fr` (Français) • `ja` (日本語) • `de` (Deutsch) • `ko` (한국어) • `pt` (Português) • `ru` (Русский) • `ar` (العربية) • `hi` (हिन्दी) • `it` (Italiano) • `nl` (Nederlands)
 
-**Example Usage:**
+**Usage:**
 
 ```bash
-# In .env file
-AI_RESPONSE_LANGUAGE=zh  # For Chinese
-AI_RESPONSE_LANGUAGE=es  # For Spanish
-AI_RESPONSE_LANGUAGE=ja  # For Japanese
+# .env file
+AI_RESPONSE_LANGUAGE=zh  # Full Chinese output
+
+# GitHub Secret
+# Add: AI_RESPONSE_LANGUAGE = zh
 ```
 
-Or programmatically:
-```python
-news_gen.generate_news_digest(
-    topics=topics,
-    prompt_template=template,
-    language="zh"  # Chinese
-)
+**Example Output (Chinese):**
+```
+国际新闻：
+
+1. OpenAI发布GPT-5增强推理能力
+OpenAI发布了GPT-5...
+来源：OpenAI官方博客
 ```
 
-The AI will generate the entire news digest in the specified language, including headlines, descriptions, and analysis.
+The system automatically adds: "IMPORTANT: Please respond entirely in Chinese (中文)" to the prompt.
 
 ## GitHub Actions Setup
 
@@ -272,20 +325,27 @@ Use [crontab.guru](https://crontab.guru/) to create custom schedules.
 ai-news-bot/
 ├── .github/
 │   └── workflows/
-│       └── daily-news.yml       # GitHub Actions workflow
+│       └── daily-news.yml           # GitHub Actions workflow
 ├── src/
 │   ├── __init__.py
-│   ├── config.py                # Configuration management
-│   ├── logger.py                # Logging utilities
-│   ├── news_generator.py        # Anthropic API integration
+│   ├── config.py                    # Configuration management
+│   ├── logger.py                    # Logging utilities
+│   ├── news_generator.py            # Anthropic API integration
 │   └── notifiers/
 │       ├── __init__.py
-│       ├── email_notifier.py    # Email notification
-│       └── webhook_notifier.py  # Webhook notification
-├── main.py                      # Main application entry point
-├── config.yaml                  # Configuration file
-├── requirements.txt             # Python dependencies
-├── .env.example                 # Example environment variables
+│       ├── email_notifier.py        # Email notification
+│       └── webhook_notifier.py      # Webhook notification
+├── docs/
+│   └── CONFIGURATION_GUIDE.md       # Detailed configuration guide
+├── main.py                          # Main application entry point
+├── config.yaml                      # Active configuration file
+├── config.examples.yaml             # 9 pre-built prompt templates ⭐
+├── requirements.txt                 # Python dependencies
+├── .env.example                     # Example environment variables
+├── GITHUB_SETUP.md                  # GitHub Actions setup guide
+├── CONFIGURATION_CHECKLIST.md       # Setup checklist
+├── test_setup.py                    # Configuration verification script
+├── example_usage.py                 # Usage examples
 ├── .gitignore
 └── README.md
 ```
@@ -309,6 +369,35 @@ NOTIFICATION_METHODS=webhook
 ```env
 NOTIFICATION_METHODS=email,webhook
 ```
+
+## Email Format
+
+### Beautiful, Email-Friendly Design
+
+The bot generates **email-optimized content** that looks stunning across all email clients:
+
+**Features:**
+- ✅ No markdown formatting (clean, professional appearance)
+- ✅ Automatic HTML conversion with beautiful styling
+- ✅ Numbered news cards with visual badges
+- ✅ Color-coded sections and headers
+- ✅ Mobile-responsive layout
+- ✅ Works in Gmail, Outlook, Apple Mail, and all mobile apps
+
+**What recipients see:**
+- Clean white container with professional styling
+- Blue section headers with subtle borders
+- Numbered news items in styled cards
+- Italicized source citations
+- Comfortable reading experience on any device
+
+**Preview your emails:**
+```bash
+python test_email_format.py
+open email_preview.html
+```
+
+📖 **Detailed Guide**: See [EMAIL_FORMAT_GUIDE.md](EMAIL_FORMAT_GUIDE.md) for customization options and troubleshooting.
 
 ## Email Setup Guide with Resend.com
 

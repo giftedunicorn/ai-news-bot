@@ -1,25 +1,23 @@
 news:
+  # Note: These topics are optional - the prompt template below will guide the news selection
   topics:
-    - "Latest breakthroughs in Large Language Models"
-    - "AI safety and alignment developments"
-    - "New AI tools and frameworks"
-    - "AI regulation and policy updates"
-    - "Industry AI applications and case studies"
+    - "Technical breakthroughs and research developments"
+    - "Product launches and major updates"
+    - "Policies, regulations, and governance"
+    - "Funding rounds and investments"
+    - "Industry applications and case studies"
 
   prompt_template: |
-    You are an AI news curator. Please provide a concise daily digest of AI news and developments.
-
-    Focus on these topics:
-    {topics}
-
-    Requirements:
-    1. Provide 3-5 key news items or developments
-    2. Each item should include a brief description (2-3 sentences)
-    3. Focus on significant developments from the past 24-48 hours
-    4. Include context about why each item is important
-    5. Use a professional but accessible tone
-
-    Format your response as a structured news digest with clear sections.
+      Please search and summarize 10 recent AI-related news items with the following requirements:
+      1. Cover both international and domestic news, maintaining balance between the two
+      2. News should be recent (within the past few weeks to months)
+      3. Include multiple dimensions: technical breakthroughs, product launches, policies and regulations, funding rounds, industry applications, etc.
+      4. For each news item include:
+         - A concise headline
+         - Core content summary (2-3 sentences)
+         - Citation from reliable sources
+      5. Present organized by international and domestic categories
+      6. Use clear and concise language suitable for quick scanning
 
 logging:
   level: INFO
