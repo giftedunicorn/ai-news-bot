@@ -5,11 +5,12 @@ An automated system that generates and distributes daily AI news digests using A
 ## Features
 
 - **AI-Powered News Generation**: Uses Anthropic's Claude API to generate comprehensive AI news digests
-- **Multiple Notification Channels**: Supports email and webhook notifications
+- **Multiple Notification Channels**: Supports email (via Resend.com) and webhook notifications
 - **Flexible Configuration**: Easy-to-customize topics and notification settings via YAML config
 - **Automated Scheduling**: GitHub Actions workflow for daily automated execution
 - **Robust Error Handling**: Comprehensive logging and retry logic
 - **Professional Email Templates**: HTML-formatted emails with clean design
+- **Modern Email Delivery**: Uses Resend.com for reliable, developer-friendly email delivery
 
 ## Quick Start
 
@@ -40,12 +41,9 @@ Edit `.env` with your actual values:
 # Required: Anthropic API Key
 ANTHROPIC_API_KEY=your_api_key_here
 
-# Optional: Email Configuration
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASSWORD=your_app_password
-EMAIL_FROM=your_email@gmail.com
+# Optional: Email Configuration with Resend.com
+RESEND_API_KEY=re_your_api_key_here
+EMAIL_FROM=your_email@yourdomain.com
 EMAIL_TO=recipient@example.com
 
 # Optional: Webhook Configuration
@@ -80,11 +78,8 @@ python main.py
 |----------|----------|-------------|
 | `ANTHROPIC_API_KEY` | Yes | Your Anthropic API key |
 | `NOTIFICATION_METHODS` | Yes | Comma-separated list: `email,webhook` |
-| `SMTP_HOST` | For email | SMTP server host |
-| `SMTP_PORT` | For email | SMTP server port |
-| `SMTP_USER` | For email | SMTP username |
-| `SMTP_PASSWORD` | For email | SMTP password |
-| `EMAIL_FROM` | For email | Sender email address |
+| `RESEND_API_KEY` | For email | Your Resend.com API key |
+| `EMAIL_FROM` | For email | Sender email address (must be verified in Resend) |
 | `EMAIL_TO` | For email | Recipient email address |
 | `WEBHOOK_URL` | For webhook | Webhook endpoint URL |
 
@@ -109,7 +104,9 @@ The project includes a GitHub Actions workflow that runs daily at 9:00 AM UTC.
    Add the following secrets:
    - `ANTHROPIC_API_KEY` (required)
    - `NOTIFICATION_METHODS` (required, e.g., `email,webhook`)
-   - Email-related secrets (if using email)
+   - `RESEND_API_KEY` (if using email)
+   - `EMAIL_FROM` (if using email)
+   - `EMAIL_TO` (if using email)
    - `WEBHOOK_URL` (if using webhook)
 
 2. **Enable GitHub Actions**
@@ -173,23 +170,36 @@ NOTIFICATION_METHODS=webhook
 NOTIFICATION_METHODS=email,webhook
 ```
 
-## Email Setup Guide
+## Email Setup Guide with Resend.com
 
-### Gmail Setup
+### Setting Up Resend
 
-1. Enable 2-Factor Authentication on your Google account
-2. Generate an App Password:
-   - Go to Google Account → Security → 2-Step Verification → App passwords
-   - Generate a new app password for "Mail"
-3. Use the app password as `SMTP_PASSWORD`
+1. **Sign up for Resend**
+   - Go to [resend.com](https://resend.com) and create an account
+   - Resend offers a generous free tier (100 emails/day, 3,000 emails/month)
 
-### Other Email Providers
+2. **Get Your API Key**
+   - Navigate to API Keys in your Resend dashboard
+   - Create a new API key
+   - Copy the API key (starts with `re_`) and set it as `RESEND_API_KEY`
 
-Update `SMTP_HOST` and `SMTP_PORT` according to your provider:
+3. **Verify Your Domain** (Recommended for production)
+   - Go to Domains in your Resend dashboard
+   - Add and verify your domain by adding DNS records
+   - Once verified, you can send from any address at your domain
 
-- **Outlook**: `smtp.office365.com:587`
-- **Yahoo**: `smtp.mail.yahoo.com:587`
-- **SendGrid**: `smtp.sendgrid.net:587`
+4. **For Testing** (No domain verification needed)
+   - You can use `onboarding@resend.dev` as the `EMAIL_FROM` address
+   - This is only for testing and has sending limits
+   - For production use, verify your own domain
+
+### Why Resend?
+
+- **Simple API**: Easy-to-use REST API, much simpler than SMTP
+- **Better Deliverability**: Higher inbox placement rates
+- **No SMTP Configuration**: No need to manage SMTP credentials
+- **Modern**: Built for developers with excellent documentation
+- **Analytics**: Track email delivery and engagement
 
 ## Webhook Integration
 
@@ -225,9 +235,10 @@ Ensure `config.yaml` exists in the project root.
 
 ### Email Not Sending
 
-- Check SMTP credentials are correct
-- Verify app password (not regular password) for Gmail
-- Check firewall/network settings
+- Verify `RESEND_API_KEY` is correct and active
+- Ensure `EMAIL_FROM` is verified in Resend (or use `onboarding@resend.dev` for testing)
+- Check Resend dashboard for delivery logs and errors
+- Verify you haven't exceeded Resend's sending limits
 
 ### Webhook Failing
 
