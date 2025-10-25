@@ -1,9 +1,9 @@
 name: Daily AI News Digest
 
 on:
-  # Run daily at 9:00 AM UTC (adjust as needed)
+  # Run daily at 0:00 AM UTC (adjust as needed)
   schedule:
-    - cron: '0 0 * * *'
+    - cron: "0 0 * * *"
 
   # Allow manual trigger
   workflow_dispatch:
@@ -19,8 +19,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          cache: 'pip'
+          python-version: "3.11"
+          cache: "pip"
 
       - name: Install dependencies
         run: |
