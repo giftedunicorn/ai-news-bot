@@ -13,7 +13,20 @@ An automated system that generates and distributes daily AI news digests using A
 - **Professional Email Templates**: HTML-formatted emails with clean design
 - **Modern Email Delivery**: Uses Resend.com for reliable, developer-friendly email delivery
 
-## Quick Start
+## 🚀 Deployment Options
+
+Choose your deployment method:
+
+| Method | Configuration | When to Use |
+|--------|--------------|-------------|
+| **Local Development** | `.env` file | Testing locally on your computer |
+| **GitHub Actions** | Repository Secrets | Automated daily runs (recommended) |
+
+> 💡 **Tip**: Start with local development to test, then deploy to GitHub Actions for automation.
+>
+> 📋 **Setup Checklist**: Use [CONFIGURATION_CHECKLIST.md](CONFIGURATION_CHECKLIST.md) to ensure everything is configured correctly.
+
+## Quick Start (Local Development)
 
 ### 1. Clone the Repository
 
@@ -28,9 +41,9 @@ cd ai-news-bot
 pip install -r requirements.txt
 ```
 
-### 3. Configure Environment Variables
+### 3. Configure Settings (For Local Development)
 
-Copy the example environment file and fill in your credentials:
+For **local development**, copy the example file and fill in your credentials:
 
 ```bash
 cp .env.example .env
@@ -57,6 +70,8 @@ NOTIFICATION_METHODS=email,webhook
 AI_RESPONSE_LANGUAGE=en
 ```
 
+> **Note**: The `.env` file is only for **local development**. For GitHub Actions automation, you'll configure these as **GitHub Secrets** (see [GitHub Actions Setup](#github-actions-setup) below).
+
 ### 4. Customize News Topics (Optional)
 
 Edit `config.yaml` to customize the news topics and prompt template:
@@ -76,17 +91,22 @@ python main.py
 
 ## Configuration
 
-### Environment Variables
+### Configuration Variables
+
+The bot requires the following configuration. How you set them depends on your deployment:
+
+- **Local Development**: Use `.env` file (see [Quick Start](#quick-start))
+- **GitHub Actions**: Use GitHub Repository Secrets (see [GitHub Actions Setup](#github-actions-setup))
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `ANTHROPIC_API_KEY` | Yes | Your Anthropic API key |
-| `NOTIFICATION_METHODS` | Yes | Comma-separated list: `email,webhook` |
+| `ANTHROPIC_API_KEY` | ✅ Required | Your Anthropic API key |
+| `NOTIFICATION_METHODS` | ✅ Required | Comma-separated list: `email`, `webhook`, or `email,webhook` |
 | `AI_RESPONSE_LANGUAGE` | Optional | Language code for AI responses (default: `en`). Supports: `zh`, `es`, `fr`, `ja`, `de`, `ko`, `pt`, `ru`, `ar`, `hi`, `it`, `nl` |
-| `RESEND_API_KEY` | For email | Your Resend.com API key |
-| `EMAIL_FROM` | For email | Sender email address (must be verified in Resend) |
-| `EMAIL_TO` | For email | Recipient email address |
-| `WEBHOOK_URL` | For webhook | Webhook endpoint URL |
+| `RESEND_API_KEY` | If using email | Your Resend.com API key |
+| `EMAIL_FROM` | If using email | Sender email address (must be verified in Resend) |
+| `EMAIL_TO` | If using email | Recipient email address |
+| `WEBHOOK_URL` | If using webhook | Webhook endpoint URL |
 
 ### Configuration File (config.yaml)
 
@@ -172,39 +192,79 @@ The AI will generate the entire news digest in the specified language, including
 
 ## GitHub Actions Setup
 
-The project includes a GitHub Actions workflow that runs daily at 9:00 AM UTC.
+The project includes a GitHub Actions workflow that runs daily at midnight UTC (00:00).
 
-### Setup Steps:
+> **Important**: GitHub Actions uses **Repository Secrets** for configuration (NOT environment variables). All settings must be added as secrets.
+>
+> 📖 **Detailed Setup Guide**: See [GITHUB_SETUP.md](GITHUB_SETUP.md) for step-by-step instructions with screenshots and troubleshooting.
 
-1. **Add Repository Secrets**
+### Step 1: Add GitHub Repository Secrets
 
-   Go to your GitHub repository → Settings → Secrets and variables → Actions → New repository secret
+Navigate to your GitHub repository:
 
-   Add the following secrets:
-   - `ANTHROPIC_API_KEY` (required)
-   - `NOTIFICATION_METHODS` (required, e.g., `email,webhook`)
-   - `AI_RESPONSE_LANGUAGE` (optional, e.g., `zh`, `es`, `ja` - defaults to `en`)
-   - `RESEND_API_KEY` (if using email)
-   - `EMAIL_FROM` (if using email)
-   - `EMAIL_TO` (if using email)
-   - `WEBHOOK_URL` (if using webhook)
+```
+Repository → Settings → Secrets and variables → Actions → Repository secrets → New repository secret
+```
 
-2. **Enable GitHub Actions**
+Add the following secrets one by one:
 
-   Ensure GitHub Actions are enabled in your repository settings.
+#### ✅ Required Secrets
 
-3. **Manual Trigger**
+| Secret Name | Example Value | Description |
+|-------------|---------------|-------------|
+| `ANTHROPIC_API_KEY` | `sk-ant-api03-xxx...` | Your Anthropic API key |
+| `NOTIFICATION_METHODS` | `email,webhook` | Notification channels (comma-separated) |
 
-   You can manually trigger the workflow from the Actions tab → Daily AI News Digest → Run workflow
+#### 📧 Email Secrets (if using email notifications)
 
-4. **Customize Schedule**
+| Secret Name | Example Value | Description |
+|-------------|---------------|-------------|
+| `RESEND_API_KEY` | `re_123abc...` | Your Resend.com API key |
+| `EMAIL_FROM` | `news@yourdomain.com` | Sender email (must be verified in Resend) |
+| `EMAIL_TO` | `you@example.com` | Recipient email address |
 
-   Edit `.github/workflows/daily-news.yml` to change the schedule:
+#### 🔗 Webhook Secrets (if using webhook notifications)
 
-   ```yaml
-   schedule:
-     - cron: '0 9 * * *'  # 9:00 AM UTC daily
-   ```
+| Secret Name | Example Value | Description |
+|-------------|---------------|-------------|
+| `WEBHOOK_URL` | `https://hooks.slack.com/...` | Your webhook endpoint URL |
+
+#### 🌍 Optional Secrets
+
+| Secret Name | Example Value | Description |
+|-------------|---------------|-------------|
+| `AI_RESPONSE_LANGUAGE` | `zh` or `es` or `ja` | Language code (defaults to `en` if not set) |
+
+### Step 2: Enable GitHub Actions
+
+Ensure GitHub Actions are enabled in your repository settings:
+
+```
+Repository → Settings → Actions → General → Allow all actions and reusable workflows
+```
+
+### Step 3: Manual Trigger (Test Your Setup)
+
+Once secrets are configured, test your setup:
+
+```
+Repository → Actions tab → Daily AI News Digest → Run workflow button
+```
+
+This will run the workflow immediately so you can verify everything is working.
+
+### Step 4: Customize Schedule (Optional)
+
+The workflow runs daily at midnight UTC by default. To change the schedule, edit `.github/workflows/daily-news.yml`:
+
+```yaml
+schedule:
+  - cron: '0 0 * * *'  # Midnight UTC daily (current)
+  - cron: '0 9 * * *'  # 9:00 AM UTC daily
+  - cron: '0 */6 * * *'  # Every 6 hours
+```
+
+Use [crontab.guru](https://crontab.guru/) to create custom schedules.
 
 ## Project Structure
 

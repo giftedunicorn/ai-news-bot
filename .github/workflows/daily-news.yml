@@ -29,24 +29,22 @@ jobs:
 
       - name: Generate and send AI news digest
         env:
-          # Anthropic API Key (required)
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # All values come from GitHub Repository Secrets
+          # Configure at: Settings → Secrets and variables → Actions → Repository secrets
 
-          # Email configuration (optional)
-          SMTP_HOST: ${{ secrets.SMTP_HOST }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT }}
-          SMTP_USER: ${{ secrets.SMTP_USER }}
-          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          # Required Secrets
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          NOTIFICATION_METHODS: ${{ secrets.NOTIFICATION_METHODS }}
+
+          # Optional: Email via Resend.com
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
 
-          # Webhook configuration (optional)
+          # Optional: Webhook
           WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
 
-          # Notification methods (comma-separated: email,webhook)
-          NOTIFICATION_METHODS: ${{ secrets.NOTIFICATION_METHODS }}
-
-          # Language configuration (optional, defaults to 'en')
+          # Optional: Language (defaults to 'en' if not set)
           AI_RESPONSE_LANGUAGE: ${{ secrets.AI_RESPONSE_LANGUAGE }}
 
         run: |
