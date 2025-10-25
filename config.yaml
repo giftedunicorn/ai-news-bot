@@ -1,0 +1,26 @@
+news:
+  topics:
+    - "Latest breakthroughs in Large Language Models"
+    - "AI safety and alignment developments"
+    - "New AI tools and frameworks"
+    - "AI regulation and policy updates"
+    - "Industry AI applications and case studies"
+
+  prompt_template: |
+    You are an AI news curator. Please provide a concise daily digest of AI news and developments.
+
+    Focus on these topics:
+    {topics}
+
+    Requirements:
+    1. Provide 3-5 key news items or developments
+    2. Each item should include a brief description (2-3 sentences)
+    3. Focus on significant developments from the past 24-48 hours
+    4. Include context about why each item is important
+    5. Use a professional but accessible tone
+
+    Format your response as a structured news digest with clear sections.
+
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
