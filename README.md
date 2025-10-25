@@ -5,6 +5,7 @@ An automated system that generates and distributes daily AI news digests using A
 ## Features
 
 - **AI-Powered News Generation**: Uses Anthropic's Claude Sonnet 4.5 (latest model, released Sept 2025) to generate comprehensive AI news digests
+- **Multilingual Support**: Generate news in 13+ languages including English, Chinese, Spanish, French, Japanese, and more
 - **Multiple Notification Channels**: Supports email (via Resend.com) and webhook notifications
 - **Flexible Configuration**: Easy-to-customize topics and notification settings via YAML config
 - **Automated Scheduling**: GitHub Actions workflow for daily automated execution
@@ -51,6 +52,9 @@ WEBHOOK_URL=https://your-webhook-url.com/endpoint
 
 # Notification Methods (comma-separated)
 NOTIFICATION_METHODS=email,webhook
+
+# Language Settings (optional, defaults to 'en')
+AI_RESPONSE_LANGUAGE=en
 ```
 
 ### 4. Customize News Topics (Optional)
@@ -78,6 +82,7 @@ python main.py
 |----------|----------|-------------|
 | `ANTHROPIC_API_KEY` | Yes | Your Anthropic API key |
 | `NOTIFICATION_METHODS` | Yes | Comma-separated list: `email,webhook` |
+| `AI_RESPONSE_LANGUAGE` | Optional | Language code for AI responses (default: `en`). Supports: `zh`, `es`, `fr`, `ja`, `de`, `ko`, `pt`, `ru`, `ar`, `hi`, `it`, `nl` |
 | `RESEND_API_KEY` | For email | Your Resend.com API key |
 | `EMAIL_FROM` | For email | Sender email address (must be verified in Resend) |
 | `EMAIL_TO` | For email | Recipient email address |
@@ -123,6 +128,48 @@ news_gen.generate_news_digest(
 )
 ```
 
+### Language Configuration
+
+The bot supports **multilingual AI responses**. Set the `AI_RESPONSE_LANGUAGE` environment variable to generate news in your preferred language.
+
+**Supported Languages:**
+
+| Code | Language | Native Name |
+|------|----------|-------------|
+| `en` | English | English (default) |
+| `zh` | Chinese | 中文 |
+| `es` | Spanish | Español |
+| `fr` | French | Français |
+| `ja` | Japanese | 日本語 |
+| `de` | German | Deutsch |
+| `ko` | Korean | 한국어 |
+| `pt` | Portuguese | Português |
+| `ru` | Russian | Русский |
+| `ar` | Arabic | العربية |
+| `hi` | Hindi | हिन्दी |
+| `it` | Italian | Italiano |
+| `nl` | Dutch | Nederlands |
+
+**Example Usage:**
+
+```bash
+# In .env file
+AI_RESPONSE_LANGUAGE=zh  # For Chinese
+AI_RESPONSE_LANGUAGE=es  # For Spanish
+AI_RESPONSE_LANGUAGE=ja  # For Japanese
+```
+
+Or programmatically:
+```python
+news_gen.generate_news_digest(
+    topics=topics,
+    prompt_template=template,
+    language="zh"  # Chinese
+)
+```
+
+The AI will generate the entire news digest in the specified language, including headlines, descriptions, and analysis.
+
 ## GitHub Actions Setup
 
 The project includes a GitHub Actions workflow that runs daily at 9:00 AM UTC.
@@ -136,6 +183,7 @@ The project includes a GitHub Actions workflow that runs daily at 9:00 AM UTC.
    Add the following secrets:
    - `ANTHROPIC_API_KEY` (required)
    - `NOTIFICATION_METHODS` (required, e.g., `email,webhook`)
+   - `AI_RESPONSE_LANGUAGE` (optional, e.g., `zh`, `es`, `ja` - defaults to `en`)
    - `RESEND_API_KEY` (if using email)
    - `EMAIL_FROM` (if using email)
    - `EMAIL_TO` (if using email)

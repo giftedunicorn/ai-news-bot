@@ -28,6 +28,7 @@ def main():
         logger.info("=" * 60)
         logger.info("AI News Bot Starting")
         logger.info(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        logger.info(f"Language: {config.ai_response_language}")
         logger.info("=" * 60)
 
         # Initialize news generator
@@ -39,6 +40,7 @@ def main():
         news_digest = news_gen.generate_with_retry(
             topics=config.news_topics,
             prompt_template=config.news_prompt_template,
+            language=config.ai_response_language,
             max_retries=3
         )
 

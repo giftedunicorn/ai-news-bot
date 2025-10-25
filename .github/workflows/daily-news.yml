@@ -46,6 +46,9 @@ jobs:
           # Notification methods (comma-separated: email,webhook)
           NOTIFICATION_METHODS: ${{ secrets.NOTIFICATION_METHODS }}
 
+          # Language configuration (optional, defaults to 'en')
+          AI_RESPONSE_LANGUAGE: ${{ secrets.AI_RESPONSE_LANGUAGE }}
+
         run: |
           python main.py
 

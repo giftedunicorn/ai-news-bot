@@ -37,7 +37,8 @@ class NewsGenerator:
         topics: List[str],
         prompt_template: str,
         model: str = "claude-sonnet-4-5-20250929",
-        max_tokens: int = 2000
+        max_tokens: int = 2000,
+        language: str = "en"
     ) -> str:
         """
         Generate a news digest based on provided topics.
@@ -47,6 +48,7 @@ class NewsGenerator:
             prompt_template: Template string with {topics} placeholder
             model: Claude model to use
             max_tokens: Maximum tokens in response
+            language: Language code for the response (e.g., 'en', 'zh', 'es', 'fr', 'ja')
 
         Returns:
             Generated news digest as string
@@ -61,7 +63,27 @@ class NewsGenerator:
             # Create the full prompt
             prompt = prompt_template.format(topics=topics_formatted)
 
-            logger.info(f"Generating news digest with model: {model}")
+            # Add language instruction if not English
+            language_names = {
+                "zh": "Chinese (中文)",
+                "es": "Spanish (Español)",
+                "fr": "French (Français)",
+                "ja": "Japanese (日本語)",
+                "de": "German (Deutsch)",
+                "ko": "Korean (한국어)",
+                "pt": "Portuguese (Português)",
+                "ru": "Russian (Русский)",
+                "ar": "Arabic (العربية)",
+                "hi": "Hindi (हिन्दी)",
+                "it": "Italian (Italiano)",
+                "nl": "Dutch (Nederlands)",
+            }
+
+            if language and language.lower() != "en":
+                language_name = language_names.get(language.lower(), language.upper())
+                prompt += f"\n\nIMPORTANT: Please respond entirely in {language_name}."
+
+            logger.info(f"Generating news digest with model: {model}, language: {language}")
             logger.debug(f"Topics: {topics}")
 
             # Call Anthropic API

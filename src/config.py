@@ -128,6 +128,11 @@ Format your response as a structured news digest with clear sections."""
             return []
         return [m.strip().lower() for m in methods_str.split(",")]
 
+    @property
+    def ai_response_language(self) -> str:
+        """Get the language for AI-generated content"""
+        return os.getenv("AI_RESPONSE_LANGUAGE", "en").strip().lower()
+
     def get(self, key: str, default: Any = None) -> Any:
         """
         Get configuration value by key.
