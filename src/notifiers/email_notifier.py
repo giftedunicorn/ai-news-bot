@@ -98,66 +98,31 @@ class EmailNotifier:
         Create HTML version of email with proper formatting.
 
         Args:
-            content: Plain text content
+            content: Markdown formatted content
             subject: Email subject
 
         Returns:
             HTML formatted email
         """
-        import re
+        try:
+            import markdown
+            from markdown.extensions import nl2br, tables, fenced_code
 
-        # Convert content to HTML with smart formatting
-        html_content = content
-
-        # Convert section headers (lines ending with :) to h2
-        html_content = re.sub(
-            r'^([A-Z][^\n:]+:)\s*$',
-            r'<h2>\1</h2>',
-            html_content,
-            flags=re.MULTILINE
-        )
-
-        # Convert numbered items (1. 2. 3. etc.) to styled divs
-        html_content = re.sub(
-            r'^(\d+)\.\s+(.+?)$',
-            r'<div class="news-item"><div class="news-number">\1</div><div class="news-content">\2</div></div>',
-            html_content,
-            flags=re.MULTILINE
-        )
-
-        # Convert bullet points to list items
-        html_content = re.sub(
-            r'^[\-\*]\s+(.+?)$',
-            r'<li>\1</li>',
-            html_content,
-            flags=re.MULTILINE
-        )
-
-        # Wrap consecutive list items in ul tags
-        html_content = re.sub(
-            r'(<li>.*?</li>\s*)+',
-            lambda m: '<ul>' + m.group(0) + '</ul>',
-            html_content,
-            flags=re.DOTALL
-        )
-
-        # Convert Source: lines to styled citations
-        html_content = re.sub(
-            r'Source:\s*(.+?)$',
-            r'<div class="source">Source: \1</div>',
-            html_content,
-            flags=re.MULTILINE
-        )
-
-        # Convert remaining line breaks to <br> (but not inside already formatted elements)
-        lines = html_content.split('\n')
-        formatted_lines = []
-        for line in lines:
-            if line.strip() and not any(tag in line for tag in ['<h2>', '<div', '<li>', '<ul>', '</ul>']):
-                formatted_lines.append(line + '<br>')
-            else:
-                formatted_lines.append(line)
-        html_content = '\n'.join(formatted_lines)
+            # Convert markdown to HTML with extensions
+            html_content = markdown.markdown(
+                content,
+                extensions=[
+                    'nl2br',      # Convert newlines to <br>
+                    'tables',     # Support for tables
+                    'fenced_code',# Support for code blocks
+                    'sane_lists', # Better list handling
+                ]
+            )
+        except ImportError:
+            logger.warning("markdown library not installed, using basic HTML formatting")
+            # Fallback to basic HTML escaping and line break conversion
+            import html
+            html_content = html.escape(content).replace('\n', '<br>\n')
 
         html = f"""
         <!DOCTYPE html>
@@ -167,8 +132,8 @@ class EmailNotifier:
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
                 body {{
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-                    line-height: 1.6;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Helvetica, Arial, sans-serif;
+                    line-height: 1.8;
                     color: #24292e;
                     max-width: 800px;
                     margin: 0 auto;
@@ -178,80 +143,147 @@ class EmailNotifier:
                 .container {{
                     background-color: #ffffff;
                     border-radius: 8px;
-                    padding: 30px;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+                    padding: 40px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
                 }}
-                h1 {{
+                .title {{
+                    color: #0366d6;
+                    font-size: 32px;
+                    font-weight: 700;
+                    margin-bottom: 20px;
+                    padding-bottom: 15px;
+                    border-bottom: 4px solid #0366d6;
+                    text-align: center;
+                }}
+                .content {{
+                    margin-top: 30px;
+                }}
+                .content h1 {{
                     color: #0366d6;
                     font-size: 28px;
-                    margin-bottom: 10px;
-                    padding-bottom: 10px;
+                    font-weight: 700;
+                    margin-top: 40px;
+                    margin-bottom: 20px;
+                    padding-bottom: 12px;
                     border-bottom: 3px solid #0366d6;
                 }}
-                h2 {{
+                .content h2 {{
                     color: #2c3e50;
-                    font-size: 20px;
-                    margin-top: 30px;
-                    margin-bottom: 15px;
-                    padding-bottom: 8px;
+                    font-size: 22px;
+                    font-weight: 600;
+                    margin-top: 35px;
+                    margin-bottom: 18px;
+                    padding-bottom: 10px;
                     border-bottom: 2px solid #e1e4e8;
                 }}
-                .news-item {{
-                    display: flex;
-                    margin: 20px 0;
-                    padding: 15px;
-                    background-color: #f6f8fa;
+                .content h3 {{
+                    color: #24292e;
+                    font-size: 18px;
+                    font-weight: 600;
+                    margin-top: 28px;
+                    margin-bottom: 15px;
+                    padding-left: 12px;
                     border-left: 4px solid #0366d6;
-                    border-radius: 4px;
                 }}
-                .news-number {{
-                    font-size: 24px;
-                    font-weight: bold;
-                    color: #0366d6;
-                    min-width: 40px;
-                    margin-right: 15px;
-                }}
-                .news-content {{
-                    flex: 1;
-                    line-height: 1.7;
-                }}
-                .source {{
-                    font-size: 13px;
+                .content h4 {{
                     color: #586069;
-                    margin-top: 8px;
-                    font-style: italic;
+                    font-size: 16px;
+                    font-weight: 600;
+                    margin-top: 20px;
+                    margin-bottom: 12px;
                 }}
-                ul {{
+                .content p {{
+                    margin: 15px 0;
+                    line-height: 1.8;
+                    color: #24292e;
+                }}
+                .content ul, .content ol {{
+                    margin: 15px 0;
+                    padding-left: 30px;
+                }}
+                .content li {{
                     margin: 10px 0;
-                    padding-left: 20px;
+                    line-height: 1.8;
                 }}
-                li {{
-                    margin: 5px 0;
-                    line-height: 1.6;
+                .content strong {{
+                    font-weight: 600;
+                    color: #0366d6;
+                }}
+                .content em {{
+                    font-style: italic;
+                    color: #586069;
+                }}
+                .content code {{
+                    background-color: #f6f8fa;
+                    padding: 3px 6px;
+                    border-radius: 3px;
+                    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+                    font-size: 0.9em;
+                    color: #d73a49;
+                }}
+                .content pre {{
+                    background-color: #f6f8fa;
+                    padding: 16px;
+                    border-radius: 6px;
+                    overflow-x: auto;
+                    border: 1px solid #e1e4e8;
+                }}
+                .content pre code {{
+                    background-color: transparent;
+                    padding: 0;
+                    color: #24292e;
+                }}
+                .content blockquote {{
+                    margin: 20px 0;
+                    padding: 10px 20px;
+                    border-left: 4px solid #dfe2e5;
+                    background-color: #f6f8fa;
+                    color: #586069;
+                }}
+                .content hr {{
+                    border: none;
+                    border-top: 2px solid #e1e4e8;
+                    margin: 30px 0;
+                }}
+                .content a {{
+                    color: #0366d6;
+                    text-decoration: none;
+                    border-bottom: 1px solid transparent;
+                    transition: border-bottom 0.2s;
+                }}
+                .content a:hover {{
+                    border-bottom: 1px solid #0366d6;
+                }}
+                .content table {{
+                    border-collapse: collapse;
+                    width: 100%;
+                    margin: 20px 0;
+                }}
+                .content th, .content td {{
+                    border: 1px solid #e1e4e8;
+                    padding: 10px 15px;
+                    text-align: left;
+                }}
+                .content th {{
+                    background-color: #f6f8fa;
+                    font-weight: 600;
                 }}
                 .footer {{
-                    margin-top: 40px;
-                    padding-top: 20px;
-                    border-top: 1px solid #e1e4e8;
+                    margin-top: 50px;
+                    padding-top: 25px;
+                    border-top: 2px solid #e1e4e8;
                     text-align: center;
-                    font-size: 13px;
+                    font-size: 14px;
                     color: #586069;
                 }}
                 .footer p {{
-                    margin: 5px 0;
-                }}
-                a {{
-                    color: #0366d6;
-                    text-decoration: none;
-                }}
-                a:hover {{
-                    text-decoration: underline;
+                    margin: 8px 0;
                 }}
             </style>
         </head>
         <body>
             <div class="container">
-                <h1>{subject}</h1>
+                <div class="title">{subject}</div>
                 <div class="content">
                     {html_content}
                 </div>
