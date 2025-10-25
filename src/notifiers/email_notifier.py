@@ -1,10 +1,8 @@
 """
-Email notification module
+Email notification module using Resend.com service
 """
 import os
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import resend
 from typing import Optional
 from datetime import datetime
 from ..logger import setup_logger
@@ -14,49 +12,46 @@ logger = setup_logger(__name__)
 
 
 class EmailNotifier:
-    """Send email notifications with AI news digest"""
+    """Send email notifications with AI news digest using Resend.com"""
 
     def __init__(
         self,
-        smtp_host: Optional[str] = None,
-        smtp_port: Optional[int] = None,
-        smtp_user: Optional[str] = None,
-        smtp_password: Optional[str] = None,
+        resend_api_key: Optional[str] = None,
         email_from: Optional[str] = None,
         email_to: Optional[str] = None
     ):
         """
-        Initialize EmailNotifier.
+        Initialize EmailNotifier with Resend.com.
 
         Args:
-            smtp_host: SMTP server host
-            smtp_port: SMTP server port
-            smtp_user: SMTP username
-            smtp_password: SMTP password
-            email_from: Sender email address
+            resend_api_key: Resend API key
+            email_from: Sender email address (must be verified in Resend)
             email_to: Recipient email address
 
         All parameters default to environment variables if not provided.
         """
-        self.smtp_host = smtp_host or os.getenv("SMTP_HOST", "smtp.gmail.com")
-        self.smtp_port = smtp_port or int(os.getenv("SMTP_PORT", "587"))
-        self.smtp_user = smtp_user or os.getenv("SMTP_USER")
-        self.smtp_password = smtp_password or os.getenv("SMTP_PASSWORD")
+        self.resend_api_key = resend_api_key or os.getenv("RESEND_API_KEY")
         self.email_from = email_from or os.getenv("EMAIL_FROM")
         self.email_to = email_to or os.getenv("EMAIL_TO")
 
+        # Set the Resend API key
+        if self.resend_api_key:
+            resend.api_key = self.resend_api_key
+        else:
+            logger.warning("Resend API key not configured")
+
         # Validate required fields
-        if not all([self.smtp_user, self.smtp_password, self.email_from, self.email_to]):
+        if not all([self.resend_api_key, self.email_from, self.email_to]):
             logger.warning(
                 "Email notifier not fully configured. "
-                "Required: SMTP_USER, SMTP_PASSWORD, EMAIL_FROM, EMAIL_TO"
+                "Required: RESEND_API_KEY, EMAIL_FROM, EMAIL_TO"
             )
 
-        logger.info(f"EmailNotifier initialized (SMTP: {self.smtp_host}:{self.smtp_port})")
+        logger.info(f"EmailNotifier initialized with Resend.com (from: {self.email_from})")
 
     def send(self, content: str, subject: Optional[str] = None) -> bool:
         """
-        Send email notification with news digest.
+        Send email notification with news digest using Resend.
 
         Args:
             content: Email body content (news digest)
@@ -65,7 +60,7 @@ class EmailNotifier:
         Returns:
             True if email sent successfully, False otherwise
         """
-        if not all([self.smtp_user, self.smtp_password, self.email_from, self.email_to]):
+        if not all([self.resend_api_key, self.email_from, self.email_to]):
             logger.error("Email notifier is not fully configured. Skipping email send.")
             return False
 
@@ -75,34 +70,27 @@ class EmailNotifier:
                 today = datetime.now().strftime("%Y-%m-%d")
                 subject = f"AI News Digest - {today}"
 
-            # Create message
-            msg = MIMEMultipart("alternative")
-            msg["Subject"] = subject
-            msg["From"] = self.email_from
-            msg["To"] = self.email_to
-
-            # Create plain text and HTML versions
-            text_part = MIMEText(content, "plain", "utf-8")
+            # Create HTML email content
             html_content = self._create_html_email(content, subject)
-            html_part = MIMEText(html_content, "html", "utf-8")
 
-            # Attach parts (plain text first, then HTML as fallback)
-            msg.attach(text_part)
-            msg.attach(html_part)
+            logger.info(f"Sending email via Resend to {self.email_to}")
 
-            logger.info(f"Sending email to {self.email_to}")
+            # Send email using Resend
+            params = {
+                "from": self.email_from,
+                "to": [self.email_to],
+                "subject": subject,
+                "html": html_content,
+                "text": content,  # Plain text fallback
+            }
 
-            # Send email
-            with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
-                server.starttls()
-                server.login(self.smtp_user, self.smtp_password)
-                server.send_message(msg)
+            response = resend.Emails.send(params)
 
-            logger.info("Email sent successfully")
+            logger.info(f"Email sent successfully via Resend (ID: {response.get('id', 'N/A')})")
             return True
 
         except Exception as e:
-            logger.error(f"Failed to send email: {str(e)}", exc_info=True)
+            logger.error(f"Failed to send email via Resend: {str(e)}", exc_info=True)
             return False
 
     def _create_html_email(self, content: str, subject: str) -> str:
