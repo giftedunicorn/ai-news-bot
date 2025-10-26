@@ -29,11 +29,12 @@ def main():
         logger.info("AI News Bot Starting")
         logger.info(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         logger.info(f"Language: {config.ai_response_language}")
+        logger.info(f"Web Search: {config.enable_web_search}")
         logger.info("=" * 60)
 
         # Initialize news generator
         logger.info("Initializing news generator...")
-        news_gen = NewsGenerator()
+        news_gen = NewsGenerator(enable_web_search=config.enable_web_search)
 
         # Generate news digest
         logger.info("Generating AI news digest...")

@@ -8,16 +8,30 @@ news:
     - "Industry applications and case studies"
 
   prompt_template: |
-      Please search and summarize 10 recent AI-related news items with the following requirements:
-      1. Cover both international and domestic news, maintaining balance between the two
-      2. News should be recent (within the past few weeks to months)
-      3. Include multiple dimensions: technical breakthroughs, product launches, policies and regulations, funding rounds, industry applications, etc.
+      Please generate a comprehensive AI news digest with 10 recent news items following these requirements:
+
+      1. **Use the web_search tool** to find the most current AI news from 2025 (not from your training data)
+      2. Cover both international and domestic news, maintaining balance between the two
+      3. Search for multiple dimensions:
+         - Technical breakthroughs and research developments
+         - Product launches and major updates
+         - Policies, regulations, and governance
+         - Funding rounds and investments
+         - Industry applications and case studies
+
       4. For each news item include:
          - A concise headline
          - Core content summary (2-3 sentences)
-         - Citation from reliable sources
-      5. Present organized by international and domestic categories
+         - Source citation from your search results
+
+      5. Present organized by:
+         - International News (5 items)
+         - Domestic News (5 items)
+
       6. Use clear and concise language suitable for quick scanning
+
+      Focus on these topics:
+      {topics}
 
 logging:
   level: INFO

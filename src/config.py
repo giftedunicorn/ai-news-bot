@@ -133,6 +133,12 @@ Format your response as a structured news digest with clear sections."""
         """Get the language for AI-generated content"""
         return os.getenv("AI_RESPONSE_LANGUAGE", "en").strip().lower()
 
+    @property
+    def enable_web_search(self) -> bool:
+        """Get whether to enable web search for fetching current news"""
+        env_value = os.getenv("ENABLE_WEB_SEARCH", "true").strip().lower()
+        return env_value in ("true", "1", "yes", "on")
+
     def get(self, key: str, default: Any = None) -> Any:
         """
         Get configuration value by key.
