@@ -5,6 +5,7 @@ import os
 from typing import Dict, List, Optional
 from anthropic import Anthropic
 from .logger import setup_logger
+from .web_search import WebSearchTool, get_search_tool_definition
 
 
 logger = setup_logger(__name__)
@@ -13,12 +14,13 @@ logger = setup_logger(__name__)
 class NewsGenerator:
     """Generate AI news digest using Anthropic's Claude API"""
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, enable_web_search: bool = True):
         """
         Initialize the NewsGenerator.
 
         Args:
             api_key: Anthropic API key. If None, will read from ANTHROPIC_API_KEY env var
+            enable_web_search: Whether to enable web search tool for fetching current news
 
         Raises:
             ValueError: If API key is not provided and not in environment
@@ -30,7 +32,9 @@ class NewsGenerator:
             )
 
         self.client = Anthropic(api_key=self.api_key)
-        logger.info("NewsGenerator initialized successfully")
+        self.enable_web_search = enable_web_search
+        self.search_tool = WebSearchTool() if enable_web_search else None
+        logger.info(f"NewsGenerator initialized successfully (web_search: {enable_web_search})")
 
     def generate_news_digest(
         self,
@@ -42,6 +46,7 @@ class NewsGenerator:
     ) -> str:
         """
         Generate a news digest based on provided topics.
+        Uses web search tool to fetch current news when enabled.
 
         Args:
             topics: List of topics to cover in the news digest
@@ -63,6 +68,10 @@ class NewsGenerator:
             # Create the full prompt
             prompt = prompt_template.format(topics=topics_formatted)
 
+            # Add web search instruction if enabled
+            if self.enable_web_search:
+                prompt += "\n\nIMPORTANT: Use the web_search tool to find the most recent AI news from 2025 before generating the digest. This ensures you have up-to-date information."
+
             # Add language instruction if not English
             language_names = {
                 "zh": "Chinese (中文)",
@@ -83,20 +92,107 @@ class NewsGenerator:
                 language_name = language_names.get(language.lower(), language.upper())
                 prompt += f"\n\nIMPORTANT: Please respond entirely in {language_name}."
 
-            logger.info(f"Generating news digest with model: {model}, language: {language}")
+            logger.info(f"Generating news digest with model: {model}, language: {language}, web_search: {self.enable_web_search}")
             logger.debug(f"Topics: {topics}")
 
-            # Call Anthropic API
-            message = self.client.messages.create(
-                model=model,
-                max_tokens=max_tokens,
-                messages=[
-                    {"role": "user", "content": prompt}
-                ]
-            )
+            # Prepare messages and tools
+            messages = [{"role": "user", "content": prompt}]
+            tools = [get_search_tool_definition()] if self.enable_web_search else None
 
-            # Extract the response text
-            response_text = message.content[0].text
+            # Agentic loop for tool use
+            response_text = None
+            max_iterations = 5  # Prevent infinite loops
+
+            for iteration in range(max_iterations):
+                # Call Anthropic API
+                if tools:
+                    message = self.client.messages.create(
+                        model=model,
+                        max_tokens=max_tokens,
+                        messages=messages,
+                        tools=tools
+                    )
+                else:
+                    message = self.client.messages.create(
+                        model=model,
+                        max_tokens=max_tokens,
+                        messages=messages
+                    )
+
+                logger.debug(f"Iteration {iteration + 1}: stop_reason = {message.stop_reason}")
+
+                # Check if we got a final response
+                if message.stop_reason == "end_turn":
+                    # Extract text from content blocks
+                    for block in message.content:
+                        if block.type == "text":
+                            response_text = block.text
+                            break
+                    break
+
+                # Check if Claude wants to use a tool
+                elif message.stop_reason == "tool_use":
+                    # Add assistant's response to messages
+                    messages.append({
+                        "role": "assistant",
+                        "content": message.content
+                    })
+
+                    # Process tool calls
+                    tool_results = []
+                    for block in message.content:
+                        if block.type == "tool_use":
+                            tool_name = block.name
+                            tool_input = block.input
+
+                            logger.info(f"Tool call: {tool_name} with input: {tool_input}")
+
+                            # Execute the tool
+                            if tool_name == "web_search" and self.search_tool:
+                                query = tool_input.get("query", "AI news 2025")
+                                max_results = tool_input.get("max_results", 10)
+                                search_results = self.search_tool.search_news(query, max_results)
+
+                                # Format search results
+                                if search_results:
+                                    result_text = f"Search results for '{query}':\n\n"
+                                    for i, result in enumerate(search_results, 1):
+                                        result_text += f"{i}. {result['title']}\n"
+                                        result_text += f"   {result['snippet']}\n"
+                                        if result['url']:
+                                            result_text += f"   URL: {result['url']}\n"
+                                        result_text += "\n"
+                                else:
+                                    result_text = f"No results found for query: {query}"
+
+                                tool_results.append({
+                                    "type": "tool_result",
+                                    "tool_use_id": block.id,
+                                    "content": result_text
+                                })
+
+                    # Add tool results to messages
+                    if tool_results:
+                        messages.append({
+                            "role": "user",
+                            "content": tool_results
+                        })
+                    else:
+                        # No valid tool results, break
+                        break
+                else:
+                    # Unexpected stop reason
+                    break
+
+            # If we didn't get a response through the loop, extract from last message
+            if response_text is None:
+                for block in message.content:
+                    if block.type == "text":
+                        response_text = block.text
+                        break
+
+            if response_text is None:
+                raise Exception("No text response received from Claude")
 
             logger.info("News digest generated successfully")
             logger.debug(f"Response length: {len(response_text)} characters")
