@@ -38,12 +38,24 @@ def main():
 
         # Generate news digest
         logger.info("Generating AI news digest...")
-        news_digest = news_gen.generate_with_retry(
-            topics=config.news_topics,
-            prompt_template=config.news_prompt_template,
-            language=config.ai_response_language,
-            max_retries=3
-        )
+
+        # Choose generation method based on configuration
+        if config.use_real_news_sources:
+            logger.info("Using real-time news sources (RSS feeds)")
+            news_digest = news_gen.generate_news_digest_from_sources(
+                prompt_template=config.news_prompt_template,
+                language=config.ai_response_language,
+                include_chinese=config.include_chinese_sources,
+                max_items_per_source=config.max_items_per_source
+            )
+        else:
+            logger.info("Using AI knowledge-based generation (may be outdated)")
+            news_digest = news_gen.generate_with_retry(
+                topics=config.news_topics,
+                prompt_template=config.news_prompt_template,
+                language=config.ai_response_language,
+                max_retries=3
+            )
 
         logger.info(f"News digest generated ({len(news_digest)} characters)")
         logger.info("-" * 60)

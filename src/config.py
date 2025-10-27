@@ -136,8 +136,27 @@ Format your response as a structured news digest with clear sections."""
     @property
     def enable_web_search(self) -> bool:
         """Get whether to enable web search for fetching current news"""
-        env_value = os.getenv("ENABLE_WEB_SEARCH", "true").strip().lower()
+        # Check config file first, then environment variable
+        config_value = self.config_data.get("news", {}).get("enable_web_search")
+        if config_value is not None:
+            return bool(config_value)
+        env_value = os.getenv("ENABLE_WEB_SEARCH", "false").strip().lower()
         return env_value in ("true", "1", "yes", "on")
+
+    @property
+    def use_real_news_sources(self) -> bool:
+        """Whether to fetch real-time news from RSS feeds"""
+        return self.config_data.get("news", {}).get("use_real_sources", True)
+
+    @property
+    def include_chinese_sources(self) -> bool:
+        """Whether to include Chinese news sources"""
+        return self.config_data.get("news", {}).get("include_chinese_sources", True)
+
+    @property
+    def max_items_per_source(self) -> int:
+        """Maximum news items to fetch per source"""
+        return self.config_data.get("news", {}).get("max_items_per_source", 5)
 
     def get(self, key: str, default: Any = None) -> Any:
         """
