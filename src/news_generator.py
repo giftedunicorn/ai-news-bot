@@ -314,14 +314,16 @@ class NewsGenerator:
 Instructions:
 {prompt_template}
 
-IMPORTANT:
-- Summarize and organize the ACTUAL news items provided above
-- Focus on the most significant and recent developments
+CRITICAL REQUIREMENTS:
+- SELECT ONLY THE TOP 10 MOST IMPORTANT news items from all the items provided above
+- Quality over quantity - prioritize groundbreaking, high-impact news
+- Avoid duplicate or overly similar news items
+- Focus on cutting-edge developments and industry-shaping events
 - Maintain accuracy - only include information from the provided articles
 - Format the output in clean, readable markdown
 - Include source attributions as clickable markdown links: [Source Name](URL)
 - Use the **Link:** field from each news item to create the clickable source link
-- Example: "Source: [TechCrunch](https://techcrunch.com/article-url)" or "阅读原文: [来源名称](URL)"
+- Example: "Source: [TechCrunch](https://techcrunch.com/article-url)" or "来源: [网站名称](URL)"
 """
 
             # Add language instruction if not English

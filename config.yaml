@@ -10,8 +10,8 @@ news:
   # Include Chinese news sources
   include_chinese_sources: true
 
-  # Maximum news items to fetch per source
-  max_items_per_source: 5
+  # Maximum news items to fetch per source (fetch more for AI to select from)
+  max_items_per_source: 10
 
   # Note: These topics are optional - the prompt template below will guide the news selection
   topics:
@@ -22,19 +22,30 @@ news:
     - "Industry applications and case studies"
 
   prompt_template: |
-      Please summarize and organize the recent AI news items into a well-structured digest with the following requirements:
-      1. Group news by categories (e.g., Technical Breakthroughs, Product Launches, Policies & Regulations, Funding & Investment, Industry Applications)
-      2. For each news item include:
-         - A clear, concise headline
-         - Key points summary (2-3 sentences)
-         - Source attribution with a clickable link using markdown format: [Source Name](URL)
-      3. Prioritize the most significant and recent developments
+      From the provided news items, select and summarize ONLY THE TOP 10 MOST IMPORTANT, HIGHEST-QUALITY, and MOST CUTTING-EDGE news items.
+
+      Selection Criteria (CRITICAL):
+      - Choose news with the highest impact and significance
+      - Prioritize groundbreaking developments, major product launches, and significant policy changes
+      - Focus on cutting-edge technology and industry-shaping events
+      - Quality over quantity - better to have 8 excellent items than 10 mediocre ones
+      - Avoid duplicate or similar news items
+
+      Output Requirements:
+      1. Select MAXIMUM 10 news items (can be fewer if not enough high-quality items)
+      2. Group by categories (e.g., Technical Breakthroughs, Product Launches, Policies & Regulations, Funding & Investment, Industry Applications)
+      3. For each selected news item include:
+         - A clear, compelling headline
+         - Key points summary (2-3 sentences) explaining WHY this is important
+         - Source attribution with clickable link: [Source Name](URL)
       4. Use clear markdown formatting for easy reading
       5. Maintain a professional and informative tone
       6. If the news is in English but the output language is Chinese, translate appropriately while keeping technical terms accurate
 
-      IMPORTANT: For source attribution, you MUST use markdown link format: [Source Name](actual_url)
-      Example: [TechCrunch](https://techcrunch.com/article-url)
+      IMPORTANT:
+      - MAXIMUM 10 news items in total (across all categories)
+      - For source attribution, use markdown link format: [Source Name](actual_url)
+      - Example: [TechCrunch](https://techcrunch.com/article-url) or 来源: [网站名称](URL)
 
       Focus on these topics:
       {topics}
