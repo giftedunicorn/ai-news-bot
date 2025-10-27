@@ -319,7 +319,9 @@ IMPORTANT:
 - Focus on the most significant and recent developments
 - Maintain accuracy - only include information from the provided articles
 - Format the output in clean, readable markdown
-- Include source attributions where appropriate
+- Include source attributions as clickable markdown links: [Source Name](URL)
+- Use the **Link:** field from each news item to create the clickable source link
+- Example: "Source: [TechCrunch](https://techcrunch.com/article-url)" or "阅读原文: [来源名称](URL)"
 """
 
             # Add language instruction if not English

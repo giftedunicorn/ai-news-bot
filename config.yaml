@@ -27,11 +27,14 @@ news:
       2. For each news item include:
          - A clear, concise headline
          - Key points summary (2-3 sentences)
-         - Source attribution
+         - Source attribution with a clickable link using markdown format: [Source Name](URL)
       3. Prioritize the most significant and recent developments
       4. Use clear markdown formatting for easy reading
       5. Maintain a professional and informative tone
       6. If the news is in English but the output language is Chinese, translate appropriately while keeping technical terms accurate
+
+      IMPORTANT: For source attribution, you MUST use markdown link format: [Source Name](actual_url)
+      Example: [TechCrunch](https://techcrunch.com/article-url)
 
       Focus on these topics:
       {topics}
